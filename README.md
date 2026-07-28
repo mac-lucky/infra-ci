@@ -14,13 +14,23 @@ else.
 
 ## Contents
 
-OpenTofu, sops, age, kubectl, helm 3 (plus helm-secrets), kustomize,
-kubeconform, talosctl, the 1Password CLI, and the usual jq/yq/git/curl.
+OpenTofu, sops, age, the 1Password CLI, bun, python3, and the usual
+jq/git/curl on top of node 22.
 
-Helm stays on 3.x because ArgoCD's repo-server renders the manifests with helm
-3; validating against helm 4 would let CI pass on output the cluster never
-sees. `kubectl` tracks `scripts/k8s-versions.env` in the Kubernetes repo, and
-`talosctl` matches `var.talos_version` in `terraform/talos`.
+Everything here has a caller, or a stated break-glass reason. `bun` builds the
+Cloudflare worker bundles that `tofu plan` needs but the repo does not carry;
+`python3` runs the destroy guard that gates auto-apply; `node` is there because
+forgejo-runner does not supply one and `actions/checkout` is a JavaScript
+action. `sops` and `age` are the break-glass pair: nothing shells out to either
+(the SOPS provider reads the key through a library), but the repo's whole
+secret story is SOPS/age and a debug job that cannot decrypt during an incident
+is worth more than the 50 MB.
+
+The image used to carry kubectl, helm, kustomize, kubeconform and talosctl for
+a manifest-validation job that was never built. Nothing referenced them, so
+they were removed rather than left to rot - `talosctl` in particular, whose
+client has to match the running node version, which a weekly-rebuilt floating
+image cannot promise.
 
 ## Build
 
@@ -31,9 +41,21 @@ rather than to follow a release.
 Every downloaded binary is checked against the upstream SHA256 list before it
 lands in the image; a tampered or truncated artifact fails the build. `age`
 comes from Alpine instead, because upstream publishes sigsum proofs rather than
-a checksum list and apk verifies package signatures itself. The one exception
-is the 1Password CLI, which has no published checksum manifest at its CDN path
-and so rests on TLS alone.
+a checksum list and apk verifies package signatures itself.
+
+The 1Password CLI is the one download with no checksum manifest at its CDN
+path. It ships a detached signature inside the zip instead, verified with
+`gpgv` against the committed `1password.asc`. The fingerprint that key must
+have is pinned as `OP_GPG_FINGERPRINT` in the Dockerfile, which is the only
+place it is asserted - it is deliberately not restated here, so a rotation
+cannot leave this file quoting a fingerprint nothing checks.
+That is a stronger check than a checksum: a checksum only proves the file
+matches a list served from the same host, a signature proves 1Password produced
+it. The key is committed rather than fetched from a keyserver so the build does
+not depend on the network for it, and the Dockerfile asserts its fingerprint so
+editing that file fails the build instead of quietly changing who is trusted.
+
+Nothing in the image is now installed unverified.
 
 The base tag floats deliberately. The build is gated on a Grype scan at `high`
 and above, so a pinned digest would hold known-bad base layers in place instead

@@ -1,15 +1,17 @@
 # Appended to the org Grype baseline by docker-cicd-reusable.yml.
 #
-# Lives here rather than in actions-shared-workflows because these paths are not
-# unique to this image: /usr/local/bin/helm and /usr/local/bin/kubectl also exist
-# in claude-code-docker, where helm is built from source precisely so its Go
-# stdlib tracks the current toolchain. A path rule in the org baseline would
-# un-gate that build too.
+# Lives here rather than in actions-shared-workflows because a location rule in
+# the org baseline applies to every image built through the shared workflow, and
+# these paths are not this image's alone - claude-code-docker also ships a
+# /usr/local/bin. Scoping them here keeps the exemption to the one image whose
+# binaries they describe.
 #
 # Each entry is one binary this image ships from an upstream release. Their
 # vendored stdlib and modules are whatever the project compiled against, so no
 # change here fixes them; a fix arrives when the project cuts a release, which
-# the weekly rebuild picks up. Everything else in the image stays gated.
+# the weekly rebuild picks up. Everything else in the image stays gated -
+# notably python3, which is Alpine's and whose CVEs are fixable by a bump, so
+# it deliberately has no entry here.
   - package:
       type: go-module
       location: "/usr/local/bin/tofu"
@@ -18,27 +20,12 @@
       location: "/usr/local/bin/sops"
   - package:
       type: go-module
-      location: "/usr/local/bin/kubectl"
-  - package:
-      type: go-module
-      location: "/usr/local/bin/helm"
-  - package:
-      type: go-module
-      location: "/usr/local/bin/kustomize"
-  - package:
-      type: go-module
-      location: "/usr/local/bin/kubeconform"
-  - package:
-      type: go-module
-      location: "/usr/local/bin/talosctl"
-  - package:
-      type: go-module
       location: "/usr/local/bin/op"
   - package:
       type: go-module
       location: "/usr/local/bin/bun"
 
-# Alpine's own Go builds of these two.
+# Alpine's own Go builds of the age family.
   - package:
       type: go-module
       location: "/usr/bin/age"
@@ -51,9 +38,6 @@
   - package:
       type: go-module
       location: "/usr/bin/age-inspect"
-  - package:
-      type: go-module
-      location: "/usr/bin/yq"
 
 # npm bundled inside the node base image; updates only when that image does.
   - package:
