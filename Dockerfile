@@ -31,6 +31,7 @@ ARG TALOSCTL_VERSION=1.13.6
 # lists releases ahead of the download CDN, so bump only after checking that
 # the zip resolves.
 ARG OP_VERSION=2.35.0
+ARG BUN_VERSION=1.3.14
 
 # No default. BuildKit injects the real value per platform, and giving it a
 # default here wins instead, which silently baked amd64 binaries into the arm64
@@ -117,6 +118,22 @@ RUN set -eu; \
       "https://cache.agilebits.com/dist/1P/op2/pkg/v${OP_VERSION}/op_linux_${TARGETARCH}_v${OP_VERSION}.zip" -o op.zip; \
     unzip -q op.zip op -d /out
 
+# bun, for stacks whose plan needs a build artifact the repo does not carry
+# (terraform/cloudflare bundles a worker with esbuild, and the committed
+# lockfile is bun.lock). Not from apk: bun is not in Alpine stable. The musl
+# build is required because the runtime stage is Alpine.
+RUN set -eu; \
+    case "$TARGETARCH" in \
+      amd64) BUN_ARCH=x64 ;; \
+      arm64) BUN_ARCH=aarch64 ;; \
+      *) echo "unsupported arch: $TARGETARCH" >&2; exit 1 ;; \
+    esac; \
+    B="https://github.com/oven-sh/bun/releases/download/bun-v${BUN_VERSION}"; \
+    F="bun-linux-${BUN_ARCH}-musl.zip"; \
+    fetch-verify "$B/$F" "$F" "$B/SHASUMS256.txt" "$F"; \
+    unzip -q "$F"; \
+    mv "bun-linux-${BUN_ARCH}-musl/bun" /out/
+
 RUN chmod 0755 /out/*
 
 
@@ -142,6 +159,6 @@ RUN helm plugin install https://github.com/jkroepke/helm-secrets --version "v${H
 RUN set -eux; \
     tofu version; sops --version; age --version; kubectl version --client=true; \
     helm version --short; kustomize version; kubeconform -v; talosctl version --client; \
-    op --version; node --version; jq --version; yq --version; git --version
+    op --version; node --version; bun --version; jq --version; yq --version; git --version
 
 WORKDIR /workspace
