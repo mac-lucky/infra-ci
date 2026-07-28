@@ -32,7 +32,10 @@ ARG TALOSCTL_VERSION=1.13.6
 # the zip resolves.
 ARG OP_VERSION=2.35.0
 
-ARG TARGETARCH=amd64
+# No default. BuildKit injects the real value per platform, and giving it a
+# default here wins instead, which silently baked amd64 binaries into the arm64
+# image (helm then failed as "syntax error" because it was an x86 ELF).
+ARG TARGETARCH
 
 RUN apk add --no-cache ca-certificates curl tar unzip
 
@@ -140,10 +143,5 @@ RUN set -eux; \
     tofu version; sops --version; age --version; kubectl version --client=true; \
     helm version --short; kustomize version; kubeconform -v; talosctl version --client; \
     op --version; node --version; jq --version; yq --version; git --version
-
-# No USER directive on purpose. forgejo-runner starts job containers as root and
-# writes the workspace as root; a non-root default breaks checkout. Isolation
-# comes from the container, which runs unprivileged with no docker socket and no
-# host mounts, not from the uid inside it.
 
 WORKDIR /workspace

@@ -34,7 +34,4 @@ jobs:
       scan_severity_cutoff: "high"
       scan_only_fixed: true
       scan_fail_build: true
-      # amd64 only. The single consumer is the forgejo-runner on homeserver,
-      # which is amd64; an arm64 leg would double build time for an image
-      # nothing pulls.
-      platforms: "linux/amd64"
+      platforms: "linux/amd64,linux/arm64"

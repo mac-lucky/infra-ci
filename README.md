@@ -39,11 +39,11 @@ The base tag floats deliberately. The build is gated on a Grype scan at `high`
 and above, so a pinned digest would hold known-bad base layers in place instead
 of picking up fixes.
 
-## Notes
+Built for `linux/amd64` and `linux/arm64`.
 
-Built for amd64 only. The single consumer is the forgejo-runner on homeserver.
-
-The image has no `USER` directive and no image build tooling. forgejo-runner
-starts job containers as root and writes the workspace as root, so a non-root
-default breaks checkout. Isolation comes from the container itself, which runs
-unprivileged with no docker socket and no host mounts.
+The bundled tools are upstream release binaries, so the Go stdlib and modules
+compiled into them are whatever those projects shipped. Those cannot be patched
+here; a fix arrives when the project cuts a release, which the weekly rebuild
+picks up. They are covered by location-scoped entries in the org Grype baseline
+(`actions-shared-workflows/security/grype-base-policy.yaml`) so the gate still
+catches everything else.
