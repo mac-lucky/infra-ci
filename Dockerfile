@@ -51,14 +51,21 @@ RUN mkdir -p /out
 #
 # $1 url, $2 output path, $3 checksum list url, $4 name to match in that list.
 # An empty $4 means the list holds a bare hash and nothing else (kubectl).
-COPY <<'EOF' /usr/local/bin/fetch-verify
+COPY --chmod=0755 <<'EOF' /usr/local/bin/fetch-verify
 #!/bin/ash
 set -eu
 url=$1; out=$2; sums=$3; name=${4:-}
 curl -fsSL --retry 3 --retry-delay 2 "$url" -o "$out"
 curl -fsSL --retry 3 --retry-delay 2 "$sums" -o /tmp/sums.txt
 if [ -n "$name" ]; then
-  want=$(grep -E "[[:space:]]\*?${name}$" /tmp/sums.txt | awk '{print $1}' | head -n1)
+  # $name goes into an ERE, so escape it: an unescaped "." matches any
+  # character and a sums file listing two similar filenames would match both.
+  esc=$(printf '%s' "$name" | sed 's/[].[^$*\\/]/\\&/g')
+  hits=$(grep -cE "[[:space:]]\*?${esc}$" /tmp/sums.txt)
+  if [ "$hits" -ne 1 ]; then
+    echo "expected exactly 1 checksum line for $name, found $hits" >&2; exit 1
+  fi
+  want=$(grep -E "[[:space:]]\*?${esc}$" /tmp/sums.txt | awk '{print $1}')
 else
   want=$(tr -d '[:space:]' < /tmp/sums.txt)
 fi
@@ -71,7 +78,6 @@ if [ "$want" != "$got" ]; then
 fi
 echo "verified ${name:-$out}"
 EOF
-RUN chmod 0755 /usr/local/bin/fetch-verify
 
 RUN set -eu; \
     B="https://github.com/opentofu/opentofu/releases/download/v${TOFU_VERSION}"; \
@@ -134,8 +140,6 @@ RUN set -eu; \
     unzip -q "$F"; \
     mv "bun-linux-${BUN_ARCH}-musl/bun" /out/
 
-RUN chmod 0755 /out/*
-
 
 FROM node:22-alpine
 
@@ -145,7 +149,9 @@ FROM node:22-alpine
 RUN apk add --no-cache \
       age bash ca-certificates coreutils curl git jq openssh-client tar unzip yq
 
-COPY --from=fetch /out/ /usr/local/bin/
+# --chmod here instead of a RUN chmod in the fetch stage, which would
+# rewrite every binary into an extra layer that mode=max exports to cache.
+COPY --from=fetch --chmod=0755 /out/ /usr/local/bin/
 
 # helm-secrets, so `helm template` can read the SOPS-encrypted valueFiles the
 # Kubernetes repo uses (secrets://secrets.yaml). Pinned to the version the

@@ -1,0 +1,61 @@
+# Appended to the org Grype baseline by docker-cicd-reusable.yml.
+#
+# Lives here rather than in actions-shared-workflows because these paths are not
+# unique to this image: /usr/local/bin/helm and /usr/local/bin/kubectl also exist
+# in claude-code-docker, where helm is built from source precisely so its Go
+# stdlib tracks the current toolchain. A path rule in the org baseline would
+# un-gate that build too.
+#
+# Each entry is one binary this image ships from an upstream release. Their
+# vendored stdlib and modules are whatever the project compiled against, so no
+# change here fixes them; a fix arrives when the project cuts a release, which
+# the weekly rebuild picks up. Everything else in the image stays gated.
+  - package:
+      type: go-module
+      location: "/usr/local/bin/tofu"
+  - package:
+      type: go-module
+      location: "/usr/local/bin/sops"
+  - package:
+      type: go-module
+      location: "/usr/local/bin/kubectl"
+  - package:
+      type: go-module
+      location: "/usr/local/bin/helm"
+  - package:
+      type: go-module
+      location: "/usr/local/bin/kustomize"
+  - package:
+      type: go-module
+      location: "/usr/local/bin/kubeconform"
+  - package:
+      type: go-module
+      location: "/usr/local/bin/talosctl"
+  - package:
+      type: go-module
+      location: "/usr/local/bin/op"
+  - package:
+      type: go-module
+      location: "/usr/local/bin/bun"
+
+# Alpine's own Go builds of these two.
+  - package:
+      type: go-module
+      location: "/usr/bin/age"
+  - package:
+      type: go-module
+      location: "/usr/bin/age-keygen"
+  - package:
+      type: go-module
+      location: "/usr/bin/age-plugin-batchpass"
+  - package:
+      type: go-module
+      location: "/usr/bin/age-inspect"
+  - package:
+      type: go-module
+      location: "/usr/bin/yq"
+
+# npm bundled inside the node base image; updates only when that image does.
+  - package:
+      type: npm
+      location: "/usr/local/lib/node_modules/npm/**"
