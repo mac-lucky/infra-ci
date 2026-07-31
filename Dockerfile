@@ -22,7 +22,7 @@
 # a Grype scan, so a pinned digest would freeze known-bad base layers in place
 # instead of picking up fixes.
 
-FROM alpine:3.22@sha256:14358309a308569c32bdc37e2e0e9694be33a9d99e68afb0f5ff33cc1f695dce AS fetch
+FROM alpine:3.24@sha256:28bd5fe8b56d1bd048e5babf5b10710ebe0bae67db86916198a6eec434943f8b AS fetch
 
 # Version pins live immediately above the RUN that consumes them, not in a
 # block up here. Every in-scope ARG enters the exec environment of a shell-form
