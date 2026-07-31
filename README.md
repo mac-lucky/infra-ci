@@ -14,12 +14,13 @@ else.
 
 ## Contents
 
-OpenTofu, sops, age, the 1Password CLI, bun, python3, and the usual
-jq/git/curl on top of node 22.
+OpenTofu, sops, age, the 1Password CLI, bun, python3 with jinja2, and the
+usual jq/git/curl on top of node 22.
 
 Everything here has a caller, or a stated break-glass reason. `bun` builds the
 Cloudflare worker bundles that `tofu plan` needs but the repo does not carry;
-`python3` runs the destroy guard that gates auto-apply; `node` is there because
+`python3` runs the destroy guard that gates auto-apply, and `py3-jinja2` is for
+the ansible template tests in the infrastructure repo; `node` is there because
 forgejo-runner does not supply one and `actions/checkout` is a JavaScript
 action. `sops` and `age` are the break-glass pair: nothing shells out to either
 (the SOPS provider reads the key through a library), but the repo's whole
@@ -29,14 +30,18 @@ is worth more than the 50 MB.
 The image used to carry kubectl, helm, kustomize, kubeconform and talosctl for
 a manifest-validation job that was never built. Nothing referenced them, so
 they were removed rather than left to rot - `talosctl` in particular, whose
-client has to match the running node version, which a weekly-rebuilt floating
-image cannot promise.
+client has to match the running node version, which a floating image rebuilt
+on its own schedule cannot promise.
 
 ## Build
 
-Weekly, 04:00 Monday, plus on push and on demand. There is no upstream project
-to track, so the schedule exists to pick up base image and package updates
-rather than to follow a release.
+Every push and PR builds and scans a single-arch image; only a push of a
+`vX.Y.Z` tag builds both arches, publishes to GHCR, and cuts a GitHub Release
+with an attached SBOM. `TOFU_VERSION`, `SOPS_VERSION` and `BUN_VERSION` are
+kept current by Renovate custom managers against each project's GitHub
+releases; `OP_VERSION` has no public GitHub release and is bumped by hand. A
+merged version bump becomes a tag automatically (`auto-tag.yml`, patch mode),
+so there is no manual release step.
 
 Every downloaded binary is checked against the upstream SHA256 list before it
 lands in the image; a tampered or truncated artifact fails the build. `age`
@@ -65,7 +70,7 @@ Built for `linux/amd64` and `linux/arm64`.
 
 The bundled tools are upstream release binaries, so the Go stdlib and modules
 compiled into them are whatever those projects shipped. Those cannot be patched
-here; a fix arrives when the project cuts a release, which the weekly rebuild
-picks up. They are covered by location-scoped entries in the org Grype baseline
-(`actions-shared-workflows/security/grype-base-policy.yaml`) so the gate still
-catches everything else.
+here; a fix arrives when the project cuts a release, which the next version
+bump and tag picks up. They are covered by location-scoped entries in the org
+Grype baseline (`actions-shared-workflows/security/grype-base-policy.yaml`) so
+the gate still catches everything else.

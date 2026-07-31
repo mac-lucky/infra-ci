@@ -1,0 +1,19 @@
+name: Auto Tag
+
+on:
+  push:
+    branches: [ "master" ]
+    paths:
+      - 'Dockerfile'
+      - '.grype-ignore.yaml'
+
+permissions:
+  contents: read
+
+jobs:
+  tag:
+    uses: mac-lucky/actions-shared-workflows/.github/workflows/auto-tag-reusable.yml@master
+    with:
+      mode: patch
+    secrets:
+      TAG_PUSH_TOKEN: ${{ secrets.TAG_PUSH_TOKEN }}
