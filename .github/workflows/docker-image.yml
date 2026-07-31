@@ -32,4 +32,4 @@ jobs:
       scan_only_fixed: true
       scan_fail_build: true
       smoke_test_script: >-
-        docker run --rm "$SMOKE_IMAGE" sh -c 'tofu version && sops --version && bun --version && op --version && node --version'
+        docker run --rm "$SMOKE_IMAGE" sh -c 'tofu version && sops --version && bun --version && op --version && node --version && python3 -c "import jinja2" && age --version'

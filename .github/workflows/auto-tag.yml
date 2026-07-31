@@ -10,6 +10,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: auto-tag
+  cancel-in-progress: false
+
 jobs:
   tag:
     uses: mac-lucky/actions-shared-workflows/.github/workflows/auto-tag-reusable.yml@master
