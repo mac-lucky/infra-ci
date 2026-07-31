@@ -15,11 +15,12 @@
 # nothing referenced them but the smoke test that checked they existed, and no
 # provider shells out to any of them. They were dropped rather than left to rot
 # - talosctl especially, whose client has to match the running node version,
-# which a weekly-rebuilt floating image cannot promise.
+# which a floating image rebuilt on its own schedule cannot promise.
 #
-# The base tag deliberately floats. This image is rebuilt every Monday and the
-# build is gated on a Grype scan, so a pinned digest would freeze known-bad
-# base layers in place instead of picking up fixes.
+# The base tag deliberately floats. Every merged change to this Dockerfile or
+# .grype-ignore.yaml tags a release (auto-tag.yml), and the build is gated on
+# a Grype scan, so a pinned digest would freeze known-bad base layers in place
+# instead of picking up fixes.
 
 FROM alpine:3.22 AS fetch
 
@@ -138,7 +139,7 @@ RUN set -eu; \
 # cuts both ways - it also does no expiry or revocation checking - which is an
 # acceptable trade only because exactly one fingerprint is pinned. The current
 # key is valid to 2032-05-16; gpgv rejects signatures from an expired key, so
-# the weekly rebuild will start failing loudly on that date rather than drifting.
+# the next release build will start failing loudly on that date rather than drifting.
 #
 # Note this diverges from both reference idioms: 1Password's own docs and the
 # docker-library images fetch key bytes from a keyserver each build and pin only
@@ -163,7 +164,7 @@ COPY 1password.asc /work/1password.asc
 # Newest version published to cache.agilebits.com. The product history page
 # lists releases ahead of the download CDN, so bump only after checking that
 # the zip resolves.
-ARG OP_VERSION=2.35.0
+ARG OP_VERSION=2.38.1
 # "Code signing for 1Password" <codesign@1password.com>, asserted against the
 # committed 1password.asc below.
 ARG OP_GPG_FINGERPRINT=3FEF9748469ADBE15DA7CA80AC2D62742012EA22
@@ -206,8 +207,10 @@ FROM node:22-alpine
 # and is kept for the same break-glass reason.
 #
 # python3 runs scripts/plan_guard.py, the destroy guard on the auto-apply path.
+# py3-jinja2 is for the ansible template tests in the infrastructure repo,
+# which render Jinja2 templates outside of ansible itself.
 RUN apk add --no-cache \
-      age bash ca-certificates coreutils curl git jq openssh-client python3 tar unzip
+      age bash ca-certificates coreutils curl git jq openssh-client python3 py3-jinja2 tar unzip
 
 # --chmod here instead of a RUN chmod in the fetch stage, which would
 # rewrite every binary into an extra layer that mode=max exports to cache.

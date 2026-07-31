@@ -9,9 +9,9 @@
 # Each entry is one binary this image ships from an upstream release. Their
 # vendored stdlib and modules are whatever the project compiled against, so no
 # change here fixes them; a fix arrives when the project cuts a release, which
-# the weekly rebuild picks up. Everything else in the image stays gated -
-# notably python3, which is Alpine's and whose CVEs are fixable by a bump, so
-# it deliberately has no entry here.
+# the next version bump and tag picks up. Everything else in the image stays
+# gated - notably python3, which is Alpine's and whose CVEs are fixable by a
+# bump, so it deliberately has no entry here.
   - package:
       type: go-module
       location: "/usr/local/bin/tofu"
