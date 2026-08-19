@@ -86,7 +86,7 @@ EOF
 # image, but the build cache is exported with mode=max, so a kept zip is dead
 # weight on every cache round-trip - about 79 MB per architecture across the
 # three downloads that use one.
-ARG TOFU_VERSION=1.12.5
+ARG TOFU_VERSION=1.12.6
 RUN set -eu; \
     B="https://github.com/opentofu/opentofu/releases/download/v${TOFU_VERSION}"; \
     fetch-verify "$B/tofu_${TOFU_VERSION}_linux_${TARGETARCH}.zip" tofu.zip \
