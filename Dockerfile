@@ -209,7 +209,13 @@ FROM node:24-alpine@sha256:d32cdf619f63fe0471182d08996dd516c6275bb5fd31ae06e55a5
 # python3 runs scripts/plan_guard.py, the destroy guard on the auto-apply path.
 # py3-jinja2 is for the ansible template tests in the infrastructure repo,
 # which render Jinja2 templates outside of ansible itself.
-RUN apk add --no-cache \
+#
+# apk upgrade first, for the same reason the base tag floats: node upstream
+# rebuilds on its own cadence, so a fixed Alpine package can sit unavailable
+# in the base for days while the Grype gate fails on it. Upgrading here takes
+# the fix as soon as Alpine publishes it. Stale openssl broke the build on
+# 2026-08-27; suppression is not the route, see .grype-ignore.yaml.
+RUN apk upgrade --no-cache && apk add --no-cache \
       age bash ca-certificates coreutils curl git jq openssh-client python3 py3-jinja2 tar unzip
 
 # --chmod here instead of a RUN chmod in the fetch stage, which would
