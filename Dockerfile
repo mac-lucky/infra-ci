@@ -108,7 +108,7 @@ RUN set -eu; \
 # (terraform/cloudflare bundles its workers with esbuild, and the committed
 # lockfile is bun.lock). Not from apk: bun is not in Alpine stable. The musl
 # build is required because the runtime stage is Alpine.
-ARG BUN_VERSION=1.4.1
+ARG BUN_VERSION=1.4.2
 RUN set -eu; \
     case "$TARGETARCH" in \
       amd64) BUN_ARCH=x64 ;; \
