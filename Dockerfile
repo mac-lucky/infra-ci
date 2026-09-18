@@ -22,7 +22,7 @@
 # a Grype scan, so a pinned digest would freeze known-bad base layers in place
 # instead of picking up fixes.
 
-FROM alpine:3.24@sha256:28bd5fe8b56d1bd048e5babf5b10710ebe0bae67db86916198a6eec434943f8b AS fetch
+FROM alpine:3.24@sha256:5b02b42e375f7426f8d65c3af331ca05d9878f9989230354504e0b9dfd431f60 AS fetch
 
 # Version pins live immediately above the RUN that consumes them, not in a
 # block up here. Every in-scope ARG enters the exec environment of a shell-form
@@ -198,7 +198,7 @@ RUN set -eu; \
     rm -f op.zip op.sig 1password.gpg
 
 
-FROM node:24-alpine@sha256:50c8e8ca1d27439048670df5883f32d57cf81cff6233222c893fd0d9884cbd81
+FROM node:24-alpine@sha256:ebfe2f90462722a7a4de65e91990e97fe0d401c70e0e762c5b53302f905ec1c1
 
 # age comes from Alpine rather than a release tarball: upstream publishes
 # sigsum .proof files instead of a SHA256 list, and apk verifies package
