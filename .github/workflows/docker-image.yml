@@ -11,11 +11,7 @@ on:
     branches: [ "master" ]
   workflow_dispatch:
 
-permissions:
-  contents: write
-  packages: write
-  security-events: write
-  actions: read
+permissions: {}
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -23,6 +19,13 @@ concurrency:
 
 jobs:
   build:
+    # The ceiling for every job in the reusable. Its jobs request exactly
+    # these, and a run asking for more than the caller grants never starts.
+    permissions:
+      contents: write         # cut the GitHub Release on a v* tag
+      packages: write         # push the image to GHCR
+      security-events: write  # upload the Grype SARIF
+      actions: read           # upload-sarif reads the run it reports on
     uses: mac-lucky/actions-shared-workflows/.github/workflows/docker-cicd-reusable.yml@master
     with:
       app_name: "infra-ci"
