@@ -25,6 +25,14 @@
       "datasourceTemplate": "github-releases",
       "depNameTemplate": "oven-sh/bun",
       "extractVersionTemplate": "^bun-v(?<version>.*)$"
+    },
+    {
+      "customType": "regex",
+      "description": "1Password CLI. Its download CDN has no release API, but the 1password/op image on Docker Hub is tagged with every CLI release and dated, so the cooldown still applies and the zip has long been on the CDN by the time the bump opens",
+      "managerFilePatterns": ["/^Dockerfile$/"],
+      "matchStrings": ["ARG OP_VERSION=(?<currentValue>[0-9.]+)"],
+      "datasourceTemplate": "docker",
+      "depNameTemplate": "1password/op"
     }
   ]
 }
