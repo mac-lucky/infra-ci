@@ -84,8 +84,8 @@ EOF
 
 # Each archive is removed in the RUN that created it. None of them reach the
 # image, but the build cache is exported with mode=max, so a kept zip is dead
-# weight on every cache round-trip - about 79 MB per architecture across the
-# three downloads that use one.
+# weight on every cache round-trip - about 95 MB per architecture across the
+# four downloads that use one.
 # renovate: datasource=github-releases depName=opentofu/opentofu extractVersion=^v(?<version>.*)$
 ARG TOFU_VERSION=1.12.6
 RUN set -eu; \
@@ -124,6 +124,19 @@ RUN set -eu; \
     unzip -q "$F"; \
     mv "bun-linux-${BUN_ARCH}-musl/bun" /out/; \
     rm -rf "$F" "bun-linux-${BUN_ARCH}-musl"
+
+# tflint, for the lint step of the infrastructure checks job. That repo's
+# .tflint.hcl enables only the ruleset compiled into the binary, so nothing
+# runs `tflint --init` and no plugin is fetched at job time. Not from apk:
+# Alpine does not package it.
+# renovate: datasource=github-releases depName=terraform-linters/tflint extractVersion=^v(?<version>.*)$
+ARG TFLINT_VERSION=0.64.0
+RUN set -eu; \
+    B="https://github.com/terraform-linters/tflint/releases/download/v${TFLINT_VERSION}"; \
+    F="tflint_linux_${TARGETARCH}.zip"; \
+    fetch-verify "$B/$F" "$F" "$B/checksums.txt" "$F"; \
+    unzip -q "$F" tflint -d /out; \
+    rm -f "$F"
 
 # 1Password publishes no SHA256 manifest at this CDN path, so op cannot go
 # through fetch-verify. It ships op.sig *inside* the zip instead - a detached
@@ -228,7 +241,7 @@ COPY --from=fetch --chmod=0755 /out/ /usr/local/bin/
 
 # Fail the build here rather than discover a broken tool mid-pipeline.
 RUN set -eux; \
-    tofu version; sops --version; age --version; op --version; \
+    tofu version; tflint --version; sops --version; age --version; op --version; \
     node --version; bun --version; python3 --version; jq --version; git --version
 
 WORKDIR /workspace

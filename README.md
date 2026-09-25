@@ -14,13 +14,15 @@ else.
 
 ## Contents
 
-OpenTofu, sops, age, the 1Password CLI, bun, python3 with jinja2, and the
-usual jq/git/curl on top of node 22.
+OpenTofu, tflint, sops, age, the 1Password CLI, bun, python3 with jinja2,
+and the usual jq/git/curl on top of node 24.
 
 Everything here has a caller, or a stated break-glass reason. `bun` builds the
 Cloudflare worker bundles that `tofu plan` needs but the repo does not carry;
-`python3` runs the destroy guard that gates auto-apply, and `py3-jinja2` is for
-the ansible template tests in the infrastructure repo; `node` is there because
+`tflint` lints every stack in the infrastructure `checks` job, with only its
+bundled ruleset so no plugin is downloaded at job time; `python3` runs the
+destroy guard that gates auto-apply, and `py3-jinja2` is for the ansible
+template tests in the infrastructure repo; `node` is there because
 forgejo-runner does not supply one and `actions/checkout` is a JavaScript
 action. `sops` and `age` are the break-glass pair: nothing shells out to either
 (the SOPS provider reads the key through a library), but the repo's whole
@@ -37,9 +39,10 @@ on its own schedule cannot promise.
 
 Every push and PR builds and scans a single-arch image; only a push of a
 `vX.Y.Z` tag builds both arches, publishes to GHCR, and cuts a GitHub Release
-with an attached SBOM. `TOFU_VERSION`, `SOPS_VERSION` and `BUN_VERSION` are
-kept current by Renovate custom managers against each project's GitHub
-releases; `OP_VERSION` has no public GitHub release and is bumped by hand. A
+with an attached SBOM. Every version pin carries a `# renovate:` marker:
+`TOFU_VERSION`, `TFLINT_VERSION`, `SOPS_VERSION` and `BUN_VERSION` track each
+project's GitHub releases, and `OP_VERSION`, which has no public GitHub
+release, tracks the tags of the `1password/op` image on Docker Hub. A
 merged version bump becomes a tag automatically (`auto-tag.yml`, patch mode),
 so there is no manual release step.
 
