@@ -168,7 +168,7 @@ COPY 1password.asc /work/1password.asc
 # the 1password/op image on Docker Hub, which is tagged with every CLI release
 # and dated: the 7-day cooldown then means the zip has long been on the CDN.
 # renovate: datasource=docker depName=1password/op
-ARG OP_VERSION=2.38.1
+ARG OP_VERSION=2.39.0
 # "Code signing for 1Password" <codesign@1password.com>, asserted against the
 # committed 1password.asc below.
 ARG OP_GPG_FINGERPRINT=3FEF9748469ADBE15DA7CA80AC2D62742012EA22
