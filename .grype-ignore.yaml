@@ -17,6 +17,9 @@
       location: "/usr/local/bin/tofu"
   - package:
       type: go-module
+      location: "/usr/local/bin/tflint"
+  - package:
+      type: go-module
       location: "/usr/local/bin/sops"
   - package:
       type: go-module
