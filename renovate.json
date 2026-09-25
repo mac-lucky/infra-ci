@@ -1,38 +1,6 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["github>mac-lucky/actions-shared-workflows"],
-  "customManagers": [
-    {
-      "customType": "regex",
-      "managerFilePatterns": ["/^Dockerfile$/"],
-      "matchStrings": ["ARG TOFU_VERSION=(?<currentValue>[0-9.]+)"],
-      "datasourceTemplate": "github-releases",
-      "depNameTemplate": "opentofu/opentofu",
-      "extractVersionTemplate": "^v(?<version>.*)$"
-    },
-    {
-      "customType": "regex",
-      "managerFilePatterns": ["/^Dockerfile$/"],
-      "matchStrings": ["ARG SOPS_VERSION=(?<currentValue>[0-9.]+)"],
-      "datasourceTemplate": "github-releases",
-      "depNameTemplate": "getsops/sops",
-      "extractVersionTemplate": "^v(?<version>.*)$"
-    },
-    {
-      "customType": "regex",
-      "managerFilePatterns": ["/^Dockerfile$/"],
-      "matchStrings": ["ARG BUN_VERSION=(?<currentValue>[0-9.]+)"],
-      "datasourceTemplate": "github-releases",
-      "depNameTemplate": "oven-sh/bun",
-      "extractVersionTemplate": "^bun-v(?<version>.*)$"
-    },
-    {
-      "customType": "regex",
-      "description": "1Password CLI. Its download CDN has no release API, but the 1password/op image on Docker Hub is tagged with every CLI release and dated, so the cooldown still applies and the zip has long been on the CDN by the time the bump opens",
-      "managerFilePatterns": ["/^Dockerfile$/"],
-      "matchStrings": ["ARG OP_VERSION=(?<currentValue>[0-9.]+)"],
-      "datasourceTemplate": "docker",
-      "depNameTemplate": "1password/op"
-    }
+  "extends": [
+    "github>mac-lucky/actions-shared-workflows"
   ]
 }

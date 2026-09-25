@@ -86,6 +86,7 @@ EOF
 # image, but the build cache is exported with mode=max, so a kept zip is dead
 # weight on every cache round-trip - about 79 MB per architecture across the
 # three downloads that use one.
+# renovate: datasource=github-releases depName=opentofu/opentofu extractVersion=^v(?<version>.*)$
 ARG TOFU_VERSION=1.12.6
 RUN set -eu; \
     B="https://github.com/opentofu/opentofu/releases/download/v${TOFU_VERSION}"; \
@@ -98,6 +99,7 @@ RUN set -eu; \
 # embedded library, never this binary. It is here as break-glass: the whole
 # secret story of the infrastructure repo is SOPS/age, and not being able to
 # `sops -d` from a debug job during an incident costs more than the 50 MB.
+# renovate: datasource=github-releases depName=getsops/sops extractVersion=^v(?<version>.*)$
 ARG SOPS_VERSION=3.13.3
 RUN set -eu; \
     B="https://github.com/getsops/sops/releases/download/v${SOPS_VERSION}"; \
@@ -108,6 +110,7 @@ RUN set -eu; \
 # (terraform/cloudflare bundles its workers with esbuild, and the committed
 # lockfile is bun.lock). Not from apk: bun is not in Alpine stable. The musl
 # build is required because the runtime stage is Alpine.
+# renovate: datasource=github-releases depName=oven-sh/bun extractVersion=^bun-v(?<version>.*)$
 ARG BUN_VERSION=1.4.2
 RUN set -eu; \
     case "$TARGETARCH" in \
@@ -161,9 +164,10 @@ RUN set -eu; \
 # cached layers above it.
 COPY 1password.asc /work/1password.asc
 
-# Newest version published to cache.agilebits.com. The product history page
-# lists releases ahead of the download CDN, so bump only after checking that
-# the zip resolves.
+# The download CDN (cache.agilebits.com) has no release API, so Renovate reads
+# the 1password/op image on Docker Hub, which is tagged with every CLI release
+# and dated: the 7-day cooldown then means the zip has long been on the CDN.
+# renovate: datasource=docker depName=1password/op
 ARG OP_VERSION=2.38.1
 # "Code signing for 1Password" <codesign@1password.com>, asserted against the
 # committed 1password.asc below.
