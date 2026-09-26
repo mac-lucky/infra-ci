@@ -84,8 +84,7 @@ EOF
 
 # Each archive is removed in the RUN that created it. None of them reach the
 # image, but the build cache is exported with mode=max, so a kept zip is dead
-# weight on every cache round-trip - about 95 MB per architecture across the
-# four downloads that use one.
+# weight on every cache round-trip.
 # renovate: datasource=github-releases depName=opentofu/opentofu extractVersion=^v(?<version>.*)$
 ARG TOFU_VERSION=1.12.6
 RUN set -eu; \
@@ -242,6 +241,7 @@ COPY --from=fetch --chmod=0755 /out/ /usr/local/bin/
 # Fail the build here rather than discover a broken tool mid-pipeline.
 RUN set -eux; \
     tofu version; tflint --version; sops --version; age --version; op --version; \
-    node --version; bun --version; python3 --version; jq --version; git --version
+    node --version; bun --version; python3 --version; python3 -c 'import jinja2'; \
+    jq --version; git --version
 
 WORKDIR /workspace

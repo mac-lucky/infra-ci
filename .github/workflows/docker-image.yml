@@ -34,5 +34,8 @@ jobs:
       scan_severity_cutoff: "high"
       scan_only_fixed: true
       scan_fail_build: true
+      # Every tool is checked by the self-check RUN at the end of the
+      # Dockerfile, so a broken one already fails the build. This only proves
+      # the built image starts and runs a command.
       smoke_test_script: >-
-        docker run --rm "$SMOKE_IMAGE" sh -c 'tofu version && tflint --version && sops --version && bun --version && op --version && node --version && python3 -c "import jinja2" && age --version'
+        docker run --rm "$SMOKE_IMAGE" tofu version
